@@ -23,9 +23,37 @@ void result_buffer(hls_avalon_slave_memory_argument((row*col)*sizeof(int)) int* 
 
 hls_always_run_component component
 void integral_image(ihc::stream_in<int>& image_pixel_stream_in, ihc::stream_out<int>& integral_value_out){
-    //int p_in = 0;
-    //p_in = image_pixel_stream_in.read();
-    integral_value_out.write(image_pixel_stream_in.read()+1);    
+    int line_sum[row][col] = {0};
+    int row_sum = 0;
+    int pixel = 0;    
+    int col_sum = 0;
+   
+    for (int i = 0; i< row; i++){
+        row_sum = 0;
+        for (int j = 0; j < col; j++) {
+             // Non-blocking read
+             bool success = false;
+            pixel = image_pixel_stream_in.tryRead(success);
+            if (success) {
+                row_sum += pixel;
+                line_sum[i][j] = row_sum;
+            }   
+        }    
+    }
+
+    for (int i = 0; i< col; i++){
+        col_sum = 0;
+        for (int j = 0; j< row; j++){
+            col_sum += line_sum[j][i];
+            line_sum[j][i] = col_sum; 
+        }
+    }
+
+    for (int i = 0; i< row; i++){
+        for (int j = 0; j< col; j++){
+            integral_value_out.write(line_sum[i][j]);
+        }
+    }
 }
 
 // Testbench
