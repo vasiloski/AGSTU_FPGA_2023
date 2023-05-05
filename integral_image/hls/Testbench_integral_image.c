@@ -8,7 +8,7 @@
 
 
 hls_avalon_slave_component component 
-void sample_buffer(hls_avalon_slave_memory_argument((row*col)*sizeof(int)) int* pixel_image, ihc::stream_out<int>& pixel_out){
+void sample_buffer(hls_avalon_slave_memory_argument((row*col)*sizeof(uint8)) uint8* pixel_image, ihc::stream_out<uint8>& pixel_out){
     for (int y = 0; y < (row*col); ++y){
             pixel_out.write(pixel_image[y]);
     }
@@ -22,10 +22,10 @@ void result_buffer(hls_avalon_slave_memory_argument((row*col)*sizeof(int)) int* 
 }
 
 hls_always_run_component component
-void integral_image(ihc::stream_in<int>& image_pixel_stream_in, ihc::stream_out<int>& integral_value_out){
+void integral_image(ihc::stream_in<uint8>& image_pixel_stream_in, ihc::stream_out<int>& integral_value_out){
     int line_sum[row][col] = {0};
     int row_sum = 0;
-    int pixel = 0;    
+    uint8 pixel = 0;    
     int col_sum = 0;
    
     for (int i = 0; i< row; i++){
@@ -37,12 +37,16 @@ void integral_image(ihc::stream_in<int>& image_pixel_stream_in, ihc::stream_out<
             if (success) {
                 row_sum += pixel;
                 line_sum[i][j] = row_sum;
+            }
+            else{
+                line_sum[i][j] = 10;
             }   
         }    
     }
-
+    #pragma unroll
     for (int i = 0; i< col; i++){
         col_sum = 0;
+        #pragma unroll
         for (int j = 0; j< row; j++){
             col_sum += line_sum[j][i];
             line_sum[j][i] = col_sum; 
@@ -65,17 +69,17 @@ int main (void)
     int fir_output[row*col];
     int results[row*col];
     int results_tb[row*col];
-    int memory_tb[row*col];           // Represents component memory
+    uint8 memory_tb[row*col];           // Represents component memory
     int memory_tb2[row*col];           // Represents component memory
     int result[row][col];
 
     // Samples (8-bit precision)
-    int sample[row][col] ={{1,0,0,1,0,0},{0,0,0,1,0,0},{1,0,0,1,1,0},{0,1,1,1,1,0},{0,0,1,0,1,1}};
-    int sample2[row][col] ={{2,1,1,2,1,1},{1,1,1,2,1,1},{2,1,1,2,2,1},{1,2,2,2,2,1},{1,1,2,1,2,2}};
+    uint8 sample[row][col] ={{1,0,0,1,0,0},{0,0,0,1,0,0},{1,0,0,1,1,0},{0,1,1,1,1,0},{0,0,1,0,1,1}};
+    //int sample2[row][col] ={{2,1,1,2,1,1},{1,1,1,2,1,1},{2,1,1,2,2,1},{1,2,2,2,2,1},{1,1,2,1,2,2}};
 
     // Streams
-    ihc::stream_out<int> sample_out;
-    ihc::stream_in<int> fir_in;
+    ihc::stream_out<uint8> sample_out;
+    ihc::stream_in<uint8> fir_in;
     ihc::stream_out<int> fir_out;
     ihc::stream_in<int> result_in;
 
@@ -87,11 +91,11 @@ int main (void)
         }
     }
     // sample2
-    for(int y=0 ; y<row ; ++y){
-        for(int x=0 ; x<col ; ++x){
-            memory_tb2[y*col+x] = sample2[y][x];
-        }
-    }
+    //for(int y=0 ; y<row ; ++y){
+        //for(int x=0 ; x<col ; ++x){
+            //memory_tb2[y*col+x] = sample2[y][x];
+        //}
+    //}
     sample_buffer(memory_tb, sample_out);                           // Call sample-buffer
     for(int y=0 ; y<(row*col) ; ++y){
         sample_output[y]= sample_out.read();
@@ -127,7 +131,7 @@ int main (void)
     
     
  // Check results with reference image
-    /*bool pass = true;
+    bool pass = true;
     for(int y=0 ; y<row ; ++y){
         for(int x=0 ; x<col ; ++x){
             result[y][x] = results[y*col+x];
@@ -139,7 +143,7 @@ int main (void)
             
         }
     }
-    */
+    /*
     for(int y=0 ; y<row ; ++y){
         for(int x=0 ; x<col ; ++x){
             result[y][x] = results[y*col+x];
@@ -151,14 +155,14 @@ int main (void)
             
         }
     }
-    
-/*
+    */
+
     if (pass){
         printf("PASSED\n");
     }
     else{
         printf("FAILED\n");
     }
-*/
+
     return 0;
 }
