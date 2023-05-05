@@ -75,6 +75,7 @@ int main (void)
 
     // Samples (8-bit precision)
     uint8 sample[row][col] ={{1,0,0,1,0,0},{0,0,0,1,0,0},{1,0,0,1,1,0},{0,1,1,1,1,0},{0,0,1,0,1,1}};
+    int result_expected[row][col] ={{1,1,1,2,2,2},{1,1,1,3,3,3},{2,2,2,5,6,6},{2,3,4,8,10,10},{2,3,5,9,12,13}};
     //int sample2[row][col] ={{2,1,1,2,1,1},{1,1,1,2,1,1},{2,1,1,2,2,1},{1,2,2,2,2,1},{1,1,2,1,2,2}};
 
     // Streams
@@ -135,8 +136,8 @@ int main (void)
     for(int y=0 ; y<row ; ++y){
         for(int x=0 ; x<col ; ++x){
             result[y][x] = results[y*col+x];
-            if (result[y][x] != results[y*col+x]){
-                printf("ERROR: Expected %d, found %d\n", (int) result[y][x], (int) memory_tb2[y*col+x]);
+            if (result[y][x] != result_expected[y][x]){
+                printf("ERROR: Expected %d, found %d\n", (int) result[y][x], (int) result_expected[y][x]);
                 pass = false;
                 printf("%d ", result[y][x]);
             }    
