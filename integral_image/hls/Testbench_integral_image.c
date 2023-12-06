@@ -3,9 +3,7 @@
 #include "HLS/ac_int.h"
 #include <stdio.h>
 
-#define row 5
-#define col 6
-
+//this is just a comment
 
 hls_avalon_slave_component component 
 void sample_buffer(hls_avalon_slave_memory_argument((row*col)*sizeof(uint8)) uint8* pixel_image, ihc::stream_out<uint8>& pixel_out){
